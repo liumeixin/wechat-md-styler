@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信公众号 Markdown 排版工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        
+        .panel {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .template-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .template-btn {
+            padding: 6px 14px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .template-btn:hover {
+            border-color: #667eea;
+        }
+        
+        .template-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            color: white;
+        }
+        
+        .editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor textarea {
+            flex: 1;
+            width: 100%;
+            min-height: 400px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: "Consolas", "Monaco", monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+        }
+        
+        .editor textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .preview {
+            flex: 1;
+            min-height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: auto;
+            background: white;
+        }
+        
+        .preview-content {
+            padding: 20px;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .status.success {
+            display: block;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .tips {
+            margin-top: 15px;
+            padding: 12px;
+            background: #fef3c7;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #92400e;
+        }
+        
+        .tips strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                min-height: auto;
+            }
+            
+            .editor textarea {
+                min-height: 250px;
+            }
+            
+            .preview {
+                min-height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📝 微信公众号 Markdown 排版工具</h1>
+        <p>输入 Markdown → 选择模板 → 一键复制到微信</p>
+    </div>
+    
+    <div class="container">
+        <!-- 输入面板 -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">📄 Markdown 输入</span>
+                <button class="btn btn-secondary" id="load-example-btn">加载示例</button>
+            </div>
+            <div class="editor">
+                <textarea id="markdown-input" placeholder="在这里输入 Markdown 内容..."></textarea>
+            </div>
+            <div class="toolbar">
+                <button class="btn btn-primary" id="convert-btn">
+                    <span>🔄 转换</span>
+                </button>
+                <button class="btn btn-secondary" id="clear-btn">
+                    <span>🗑️ 清空</span>
+                </button>
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+        
+        <!-- 预览面板 -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">👁️ 预览</span>
+                <div class="template-selector" id="template-buttons">
+                    <!-- 模板按钮将由 JS 生成 -->
+                </div>
+            </div>
+            <div class="preview" id="preview-container">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">转换中...</p>
+                </div>
+                <div class="preview-content" id="preview-content">
+                    <p style="color: #999; text-align: center; padding: 40px;">
+                        输入 Markdown 并点击"转换"按钮预览效果
+                    </p>
+                </div>
+            </div>
+            <div class="toolbar">
+                <button class="btn btn-success" id="copy-btn" disabled>
+                    <span>📋 一键复制</span>
+                </button>
+            </div>
+            <div class="tips">
+                <strong>💡 使用提示：</strong>
+                1. 点击"一键复制"后，完整的 HTML 已复制到剪贴板<br>
+                2. 打开微信公众号后台，Ctrl+V 粘贴即可<br>
+                3. 如样式丢失，可能是微信不兼容该 CSS
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 服务器传递的模板列表
+        var TEMPLATE_LIST = {{ templates | tojson }};
+        var currentTemplate = 'elegant';
+        var currentHtml = '';
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initTemplateButtons();
+            bindEvents();
+        });
+        
+        // 绑定按钮事件
+        function bindEvents() {
+            document.getElementById('convert-btn').addEventListener('click', convert);
+            document.getElementById('load-example-btn').addEventListener('click', loadExample);
+            document.getElementById('clear-btn').addEventListener('click', clearInput);
+            document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+        }
+        
+        // 初始化模板按钮
+        function initTemplateButtons() {
+            var container = document.getElementById('template-buttons');
+            var html = '';
+            for (var i = 0; i < TEMPLATE_LIST.length; i++) {
+                var t = TEMPLATE_LIST[i];
+                var active = t === currentTemplate ? ' active' : '';
+                html += '<button class="template-btn' + active + '" data-template="' + t + '">' + getTemplateName(t) + '</button>';
+            }
+            container.innerHTML = html;
+            
+            // 绑定模板选择事件
+            var btns = container.querySelectorAll('.template-btn');
+            for (var j = 0; j < btns.length; j++) {
+                btns[j].addEventListener('click', (function(idx) {
+                    return function() {
+                        selectTemplate(TEMPLATE_LIST[idx]);
+                    };
+                })(j));
+            }
+        }
+        
+        // 获取模板显示名称
+        function getTemplateName(name) {
+            var names = {
+                'elegant': '优雅紫',
+                'tech': '科技蓝',
+                'minimal': '简约白',
+                'warm': '暖色调',
+                'dark': '暗夜'
+            };
+            return names[name] || name;
+        }
+        
+        // 选择模板
+        function selectTemplate(template) {
+            currentTemplate = template;
+            initTemplateButtons();
+            // 如果已有内容，自动重新转换
+            var input = document.getElementById('markdown-input').value;
+            if (input.trim()) {
+                convert();
+            }
+        }
+        
+        // 转换
+        function convert() {
+            var input = document.getElementById('markdown-input').value;
+            if (!input.trim()) {
+                showStatus('请输入 Markdown 内容', 'error');
+                return;
+            }
+            
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('preview-content').style.display = 'none';
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/convert', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('preview-content').style.display = 'block';
+                    
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                currentHtml = data.html;
+                                document.getElementById('preview-content').innerHTML = data.html;
+                                document.getElementById('copy-btn').disabled = false;
+                                showStatus('✅ 转换成功！', 'success');
+                            } else {
+                                showStatus('转换失败: ' + data.error, 'error');
+                            }
+                        } catch (e) {
+                            showStatus('解析响应失败: ' + e.message, 'error');
+                        }
+                    } else {
+                        showStatus('请求失败，状态码: ' + xhr.status, 'error');
+                    }
+                }
+            };
+            
+            xhr.send(JSON.stringify({
+                markdown: input,
+                template: currentTemplate
+            }));
+        }
+        
+        // 一键复制
+        function copyToClipboard() {
+            if (!currentHtml) return;
+            
+            try {
+                navigator.clipboard.writeText(currentHtml).then(function() {
+                    showStatus('✅ 已复制到剪贴板！去微信公众号粘贴吧', 'success');
+                }).catch(function(e) {
+                    fallbackCopy(currentHtml);
+                });
+            } catch (e) {
+                fallbackCopy(currentHtml);
+            }
+        }
+        
+        function fallbackCopy(text) {
+            try {
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                var ok = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if (ok) {
+                    showStatus('✅ 已复制到剪贴板！去微信公众号粘贴吧', 'success');
+                } else {
+                    showStatus('复制失败，请手动复制预览内容', 'error');
+                }
+            } catch (e2) {
+                showStatus('复制失败，请手动复制预览内容', 'error');
+            }
+        }
+        
+        // 加载示例
+        function loadExample() {
+            var example = '# 微信公众号排版测试\n\n这是一段**正文内容**，用来测试排版效果。\n\n## 二级标题\n\n### 三级标题\n\n正文段落，继续测试。微信公众号对 CSS 支持有限，需要注意：\n\n- 列表项 1\n- 列表项 2\n- 列表项 3\n\n> 这是引用块，可以用来强调重要内容\n\n### 代码测试\n\n行内代码：`console.log("hello")`\n\n代码块：\n\n```python\ndef hello():\n    print("Hello, World!")\n```\n\n### 链接和强调\n\n这是[链接文字](https://example.com)。\n\n**粗体文字**和*斜体文字*。\n\n\n---\n\n分割线测试\n\n| 表格 | 表头 | 测试 |\n|------|------|------|\n| 单元格1 | 单元格2 | 单元格3 |\n| 单元格4 | 单元格5 | 单元格6 |\n\n---\n\n> 转换后点击"一键复制"，然后去微信公众号后台粘贴即可！';
+            document.getElementById('markdown-input').value = example;
+            convert();
+        }
+        
+        // 清空输入
+        function clearInput() {
+            document.getElementById('markdown-input').value = '';
+            document.getElementById('preview-content').innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">输入 Markdown 并点击"转换"按钮预览效果</p>';
+            document.getElementById('copy-btn').disabled = true;
+            currentHtml = '';
+            hideStatus();
+        }
+        
+        // 显示状态
+        function showStatus(message, type) {
+            var status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+        
+        // 隐藏状态
+        function hideStatus() {
+            document.getElementById('status').className = 'status';
+        }
+    </script>
+</body>
+</html>
