@@ -1,29 +1,13 @@
-version: '3.8'
-
 services:
   wechat-styler:
-    # 本地构建（首次）
-    # build: .
-    
-    # 从 GitHub Container Registry 拉取（推荐）
-    image: ghcr.io/liumeixin/wechat-md-styler:latest
+    image: liumeixin/wechat-md-styler:latest
     container_name: wechat-md-styler
     restart: unless-stopped
     ports:
       - "18888:8080"
-    environment:
-      - PORT=8080
-      - HOST=0.0.0.0
-
-# 使用方法：
-# 1. 克隆仓库
-# git clone https://github.com/liumeixin/wechat-md-styler.git
-# cd wechat-md-styler
-#
-# 2. 拉取镜像（推送到 GitHub 后可用）
-# docker-compose pull
-#
-# 3. 启动
-# docker-compose up -d
-#
-# 4. 访问 http://nas-ip:18888
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
