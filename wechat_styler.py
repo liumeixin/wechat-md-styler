@@ -162,6 +162,14 @@ class WeChatStyler:
             flags=re.MULTILINE
         )
         
+        # 10. 引用块 > 文字
+        html = re.sub(
+            r'^> (.+)$',
+            r'<blockquote>\1</blockquote>',
+            html,
+            flags=re.MULTILINE
+        )
+        
 # 10. 段落处理：将连续的文本块包裹为 p
         # 注意：单行换行（无空行分隔）属于同一段落，双重换行（空行）才是段落分隔
         paragraphs = []
@@ -208,6 +216,10 @@ class WeChatStyler:
                 paragraphs.append(line_stripped)
             # 标题
             elif line_stripped.startswith('<h'):
+                flush_paragraph()
+                paragraphs.append(line_stripped)
+            # 引用块
+            elif line_stripped.startswith('<blockquote'):
                 flush_paragraph()
                 paragraphs.append(line_stripped)
             # 分割线

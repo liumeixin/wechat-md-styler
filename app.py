@@ -55,17 +55,16 @@ def convert():
         styler = WeChatStyler(template=template)
         html = styler.convert(markdown)
         
-        # 调试：返回 body 内容供检查
-        import re
+        # 只提取 body 内容（不含 <head> 和 CSS），给微信公众号用
         body_match = re.search(r'<body>(.*?)</body>', html, re.DOTALL)
         body_content = body_match.group(1) if body_match else html
         
-        # 提取所有 img 标签
+        # 调试：返回 body 内容供检查
         img_tags = re.findall(r'<img[^>]+>', body_content)
         
         return jsonify({
             'success': True, 
-            'html': html,
+            'html': body_content,  # 只返回 body 内容，不含 CSS
             'debug': {
                 'input_repr': repr(markdown[:300]),
                 'img_tags': img_tags,
