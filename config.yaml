@@ -1,0 +1,26 @@
+# 微信公众号 Markdown 排版工具配置
+
+# 默认模板
+default_template: "elegant"
+
+# 可用模板
+available_templates:
+  - elegant      # 优雅紫（参考那篇 Hermes 文章）
+  - tech         # 科技蓝
+  - minimal      # 简约白
+  - warm         # 暖色调
+  - dark         # 暗夜模式
+
+# 微信公众号特殊配置
+wechat:
+  # 微信对代码块支持有限，建议用pre标签
+  code_as_pre: true
+  # 图片最大宽度（微信限制）
+  max_image_width: 640
+  # 允许的行内样式
+  allowed_styles:
+    - color
+    - font-size
+    - font-weight
+    - background-color
+    - text-align

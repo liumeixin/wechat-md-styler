@@ -1,0 +1,59 @@
+/* 微信公众号排版 - 暗夜模式主题 */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  font-size: 17px;
+  line-height: 1.8;
+  color: #e0e0e0;
+  background-color: #1a1a1a;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #fff;
+  font-weight: bold;
+  margin: 1em 0 0.5em 0;
+}
+
+h1 { font-size: 22px; text-align: center; }
+h2 { font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+
+p { margin: 0; padding: 8px 0; }
+
+a { color: #7ab8ff; }
+strong, b { color: #7ab8ff; font-weight: bold; }
+
+code {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 14px;
+  background-color: #2d2d2d;
+  color: #7ab8ff;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  background-color: #2d2d2d;
+  padding: 12px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 12px 0;
+  border: 1px solid #444;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-left: 4px solid #7ab8ff;
+  background-color: #252525;
+}
+
+ul, ol { margin: 12px 0; padding-left: 24px; }
+li { margin: 6px 0; }
+
+img { max-width: 100%; height: auto; display: block; margin: 16px auto; border-radius: 4px; }
+
+table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+th, td { border: 1px solid #444; padding: 10px; text-align: left; }
+th { background-color: #2d2d2d; }
+
+hr { border: none; border-top: 1px solid #333; margin: 24px 0; }
