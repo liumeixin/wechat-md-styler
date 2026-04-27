@@ -132,17 +132,17 @@ class WeChatStyler:
             html
         )
         
-        # 6. 链接 [文字](url)
-        html = re.sub(
-            r'\[([^\]]+)\]\(([^)]+)\)',
-            r'<a href="\2">\1</a>',
-            html
-        )
-        
-        # 7. 图片 ![alt](url)
+        # 6. 图片 ![alt](url) （必须在链接之前处理）
         html = re.sub(
             r'!\[([^\]]*)\]\(([^)]+)\)',
             r'<img src="\2" alt="\1">',
+            html
+        )
+
+        # 7. 链接 [文字](url)
+        html = re.sub(
+            r'\[([^\]]+)\]\(([^)]+)\)',
+            r'<a href="\2">\1</a>',
             html
         )
         
@@ -162,51 +162,74 @@ class WeChatStyler:
             flags=re.MULTILINE
         )
         
-        # 10. 段落处理：将连续的文本块包裹为 p
+# 10. 段落处理：将连续的文本块包裹为 p
+        # 注意：单行换行（无空行分隔）属于同一段落，双重换行（空行）才是段落分隔
         paragraphs = []
         in_list = False
         in_pre = False
-        
+        current_paragraph_lines = []  # 累积当前段落的行
+
+        def flush_paragraph():
+            """将累积的行合并为一个段落"""
+            nonlocal current_paragraph_lines
+            if current_paragraph_lines:
+                # 合并多行，保留软换行（单\n转<br>）
+                para_content = '<br>\n'.join(current_paragraph_lines)
+                paragraphs.append(f'<p>{para_content}</p>')
+                current_paragraph_lines = []
+
         for line in html.split('\n'):
-            line = line.strip()
+            line_stripped = line.strip()
             
-            # 跳过空行
-            if not line:
+            # 跳过空行（段落分隔符）
+            if not line_stripped:
                 if in_list:
                     paragraphs.append('</ul>')
                     in_list = False
+                else:
+                    flush_paragraph()
                 continue
             
             # 代码块和预格式化内容直接添加
             if line.startswith('<pre') or line.startswith('<code'):
                 in_pre = True
+                flush_paragraph()
                 paragraphs.append(line)
             elif in_pre:
                 paragraphs.append(line)
                 if '</pre>' in line or '</code>' in line:
                     in_pre = False
             # 列表项
-            elif line.startswith('<li>'):
+            elif line_stripped.startswith('<li>'):
                 if not in_list:
+                    flush_paragraph()
                     paragraphs.append('<ul>')
                     in_list = True
-                paragraphs.append(line)
+                paragraphs.append(line_stripped)
             # 标题
-            elif line.startswith('<h'):
-                paragraphs.append(line)
+            elif line_stripped.startswith('<h'):
+                flush_paragraph()
+                paragraphs.append(line_stripped)
             # 分割线
-            elif line == '<hr>':
-                paragraphs.append(line)
-            # 其他作为段落
+            elif line_stripped == '<hr>':
+                flush_paragraph()
+                paragraphs.append(line_stripped)
+            # 其他作为段落（累积多行）
             else:
-                if in_list:
-                    paragraphs.append('</ul>')
-                    in_list = False
-                paragraphs.append(f'<p>{line}</p>')
-        
+                # 如果是图片标签，先 flush 段落再添加
+                if line_stripped.startswith('<img'):
+                    flush_paragraph()
+                    paragraphs.append(line_stripped)
+                else:
+                    if in_list:
+                        paragraphs.append('</ul>')
+                        in_list = False
+                    current_paragraph_lines.append(line_stripped)
+
         if in_list:
             paragraphs.append('</ul>')
-        
+        flush_paragraph()
+
         return '\n'.join(paragraphs)
     
     def _wrap_html(self, content: str) -> str:

@@ -20,9 +20,20 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
-            text-align: center;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-left {
+            text-align: left;
+        }
+        
+        .header-right {
+            font-size: 12px;
+            opacity: 0.8;
         }
         
         .header h1 {
@@ -133,6 +144,14 @@
             padding: 20px;
         }
         
+        /* 强制图片显示 */
+        .preview-content img {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block !important;
+            margin: 10px auto !important;
+        }
+        
         .toolbar {
             display: flex;
             gap: 10px;
@@ -219,6 +238,17 @@
             margin-bottom: 5px;
         }
         
+        .toolbar-inline {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-inline .btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
         /* 加载动画 */
         .loading {
             display: none;
@@ -266,8 +296,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>📝 微信公众号 Markdown 排版工具</h1>
-        <p>输入 Markdown → 选择模板 → 一键复制到微信</p>
+        <div class="header-left">
+            <h1>📝 微信公众号 Markdown 排版工具</h1>
+            <p>输入 Markdown → 选择模板 → 一键复制到微信</p>
+        </div>
+        <div class="header-right" id="version-info">v2025.04.27</div>
     </div>
     
     <div class="container">
@@ -275,18 +308,14 @@
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">📄 Markdown 输入</span>
-                <button class="btn btn-secondary" id="load-example-btn">加载示例</button>
+                <div class="toolbar-inline">
+                    <button class="btn btn-secondary" id="load-example-btn">📝 示例</button>
+                    <button class="btn btn-primary" id="convert-btn">🔄 转换</button>
+                    <button class="btn btn-secondary" id="clear-btn">🗑️ 清空</button>
+                </div>
             </div>
             <div class="editor">
                 <textarea id="markdown-input" placeholder="在这里输入 Markdown 内容..."></textarea>
-            </div>
-            <div class="toolbar">
-                <button class="btn btn-primary" id="convert-btn">
-                    <span>🔄 转换</span>
-                </button>
-                <button class="btn btn-secondary" id="clear-btn">
-                    <span>🗑️ 清空</span>
-                </button>
             </div>
             <div id="status" class="status"></div>
         </div>
@@ -320,6 +349,10 @@
                 1. 点击"一键复制"后，完整的 HTML 已复制到剪贴板<br>
                 2. 打开微信公众号后台，Ctrl+V 粘贴即可<br>
                 3. 如样式丢失，可能是微信不兼容该 CSS
+            </div>
+            <div class="debug-panel" id="debug-panel" style="display:none; margin-top:10px; padding:10px; background:#f0f0f0; border-radius:6px; font-size:12px;">
+                <strong>调试信息：</strong>
+                <pre id="debug-content" style="white-space:pre-wrap; word-break:break-all; margin:5px 0;"></pre>
             </div>
         </div>
     </div>
@@ -410,22 +443,31 @@
                     document.getElementById('preview-content').style.display = 'block';
                     
                     if (xhr.status === 200) {
-                        try {
-                            var data = JSON.parse(xhr.responseText);
-                            if (data.success) {
-                                currentHtml = data.html;
-                                document.getElementById('preview-content').innerHTML = data.html;
-                                document.getElementById('copy-btn').disabled = false;
-                                showStatus('✅ 转换成功！', 'success');
-                            } else {
-                                showStatus('转换失败: ' + data.error, 'error');
+                            try {
+                                var data = JSON.parse(xhr.responseText);
+                                if (data.success) {
+                                    currentHtml = data.html;
+                                    document.getElementById('preview-content').innerHTML = data.html;
+                                    document.getElementById('copy-btn').disabled = false;
+                                    showStatus('✅ 转换成功！', 'success');
+                                    
+                                    // 显示调试信息
+                                    if (data.debug && data.debug.body_content) {
+                                        // 直接显示 body 内容的前 1500 字符
+                                        var debugInfo = '=== 输入 ===\n' + data.debug.input_repr + 
+                                                     '\n\n=== body(前1500) ===\n' + data.debug.body_content.substring(0, 1500);
+                                        document.getElementById('debug-content').textContent = debugInfo;
+                                        document.getElementById('debug-panel').style.display = 'block';
+                                    }
+                                } else {
+                                    showStatus('转换失败: ' + data.error, 'error');
+                                }
+                            } catch (e) {
+                                showStatus('解析响应失败: ' + e.message, 'error');
                             }
-                        } catch (e) {
-                            showStatus('解析响应失败: ' + e.message, 'error');
+                        } else {
+                            showStatus('请求失败，状态码: ' + xhr.status, 'error');
                         }
-                    } else {
-                        showStatus('请求失败，状态码: ' + xhr.status, 'error');
-                    }
                 }
             };
             

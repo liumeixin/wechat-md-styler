@@ -55,10 +55,27 @@ def convert():
         styler = WeChatStyler(template=template)
         html = styler.convert(markdown)
         
-        return jsonify({'success': True, 'html': html})
+        # 调试：返回 body 内容供检查
+        import re
+        body_match = re.search(r'<body>(.*?)</body>', html, re.DOTALL)
+        body_content = body_match.group(1) if body_match else html
+        
+        # 提取所有 img 标签
+        img_tags = re.findall(r'<img[^>]+>', body_content)
+        
+        return jsonify({
+            'success': True, 
+            'html': html,
+            'debug': {
+                'input_repr': repr(markdown[:300]),
+                'img_tags': img_tags,
+                'body_content': body_content[:800]
+            }
+        })
     
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        import traceback
+        return jsonify({'success': False, 'error': str(e), 'trace': traceback.format_exc()})
 
 
 @app.route('/templates/<path:filename>')

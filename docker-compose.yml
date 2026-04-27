@@ -1,13 +1,7 @@
 services:
   wechat-styler:
-    image: liumeixin/wechat-md-styler:latest
+    build: .
     container_name: wechat-md-styler
     restart: unless-stopped
     ports:
       - "18888:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
