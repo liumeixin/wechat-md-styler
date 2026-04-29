@@ -1,6 +1,7 @@
 services:
   wechat-styler:
-    image: liumeixin/wechat-md-styler:latest
+    build: .
+    image: wechat-md-styler:local
     container_name: wechat-md-styler
     restart: unless-stopped
     ports:

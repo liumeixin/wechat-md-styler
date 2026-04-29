@@ -10,9 +10,23 @@
 
 import os
 from flask import Flask, render_template, request, jsonify, send_from_directory
+import os
 from pathlib import Path
+from datetime import datetime
+
+# 设置时区
+os.environ['TZ'] = 'Asia/Shanghai'
 
 app = Flask(__name__, template_folder='templates_flask')
+
+# 解除图片加载限制
+@app.after_request
+def after_request(response):
+    response.headers['Content-Security-Policy'] = "img-src * data: blob:;"
+    return response
+
+# 记录容器启动时间
+CONTAINER_START_TIME = datetime.now().strftime('%Y年%m月%d日%H时%M分')
 
 # 配置
 BASE_DIR = Path(__file__).parent
@@ -32,7 +46,7 @@ def get_templates():
 @app.route('/')
 def index():
     """主页"""
-    return render_template('index.html', templates=get_templates())
+    return render_template('index.html', templates=get_templates(), start_time=CONTAINER_START_TIME)
 
 
 @app.route('/convert', methods=['POST'])

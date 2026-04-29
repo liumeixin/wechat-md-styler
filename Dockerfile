@@ -7,7 +7,7 @@ LABEL description="微信公众号 Markdown 排版工具 - 交互式网页"
 WORKDIR /app
 
 # 安装依赖
-RUN pip install --no-cache-dir flask pyyaml
+RUN pip install --no-cache-dir flask pyyaml markdown
 
 # 复制应用文件
 COPY . .

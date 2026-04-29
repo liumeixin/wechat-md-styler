@@ -23,6 +23,7 @@
             padding: 20px;
             text-align: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
         }
         
         .header h1 {
@@ -34,6 +35,14 @@
             opacity: 0.9;
             margin-top: 5px;
             font-size: 14px;
+        }
+        
+        .version {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 12px;
+            opacity: 0.8;
         }
         
         .container {
@@ -61,12 +70,20 @@
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .panel-title {
             font-size: 16px;
             font-weight: 600;
             color: #333;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
         
         .template-selector {
@@ -131,6 +148,14 @@
         
         .preview-content {
             padding: 20px;
+        }
+        
+        /* 空段落显示 - 用占位符标记 */
+        .preview-content p:empty::before,
+        .preview-content p:only-child:empty::before {
+            content: "↵";
+            color: #ddd;
+            font-size: 12px;
         }
         
         .toolbar {
@@ -268,6 +293,7 @@
     <div class="header">
         <h1>📝 微信公众号 Markdown 排版工具</h1>
         <p>输入 Markdown → 选择模板 → 一键复制到微信</p>
+        <div class="version" id="version"></div>
     </div>
     
     <div class="container">
@@ -275,18 +301,20 @@
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">📄 Markdown 输入</span>
-                <button class="btn btn-secondary" id="load-example-btn">加载示例</button>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="convert-btn" style="padding: 6px 14px; font-size: 13px;">
+                        <span>🔄 转换</span>
+                    </button>
+                    <button class="btn btn-secondary" id="clear-btn" style="padding: 6px 14px; font-size: 13px;">
+                        <span>🗑️ 清空</span>
+                    </button>
+                    <button class="btn btn-secondary" id="load-example-btn" style="padding: 6px 14px; font-size: 13px;">
+                        <span>📋 示例</span>
+                    </button>
+                </div>
             </div>
             <div class="editor">
                 <textarea id="markdown-input" placeholder="在这里输入 Markdown 内容..."></textarea>
-            </div>
-            <div class="toolbar">
-                <button class="btn btn-primary" id="convert-btn">
-                    <span>🔄 转换</span>
-                </button>
-                <button class="btn btn-secondary" id="clear-btn">
-                    <span>🗑️ 清空</span>
-                </button>
             </div>
             <div id="status" class="status"></div>
         </div>
@@ -330,8 +358,27 @@
         var currentTemplate = 'elegant';
         var currentHtml = '';
         
+        // 版本时间 - 获取容器启动时间
+        function getBuildTime() {
+            // 尝试从后端获取启动时间，否则用本地时间
+            var startTime = '{{ start_time }}';
+            if (startTime && startTime !== '') {
+                return startTime;
+            }
+            // 后端没传就用当前时间
+            var now = new Date();
+            var year = now.getFullYear();
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            var day = String(now.getDate()).padStart(2, '0');
+            var hour = String(now.getHours()).padStart(2, '0');
+            var minute = String(now.getMinutes()).padStart(2, '0');
+            return year + '年' + month + '月' + day + '日' + hour + '时' + minute + '分';
+        }
+        
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 显示版本时间
+            document.getElementById('version').textContent = getBuildTime();
             initTemplateButtons();
             bindEvents();
         });
@@ -435,39 +482,45 @@
             }));
         }
         
-        // 一键复制
+        // 一键复制 - 用富文本格式，让微信能渲染
         function copyToClipboard() {
             if (!currentHtml) return;
             
+            // 处理 HTML：不加换行，让微信自己处理段落换行
+            var processedHtml = currentHtml
+            
+            // 创建一个隐藏的 div 来渲染 HTML
+            var container = document.createElement('div');
+            container.innerHTML = processedHtml;
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.background = 'white';
+            container.style.color = 'black';
+            document.body.appendChild(container);
+            
+            // 选中内容
+            var range = document.createRange();
+            range.selectNodeContents(container);
+            var selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            
             try {
-                navigator.clipboard.writeText(currentHtml).then(function() {
-                    showStatus('✅ 已复制到剪贴板！去微信公众号粘贴吧', 'success');
-                }).catch(function(e) {
-                    fallbackCopy(currentHtml);
-                });
+                // 尝试富文本复制
+                document.execCommand('copy');
+                showStatus('✅ 已复制到剪贴板！去微信公众号粘贴', 'success');
             } catch (e) {
-                fallbackCopy(currentHtml);
+                // 备用：纯文本复制
+                navigator.clipboard.writeText(processedHtml).then(function() {
+                    showStatus('✅ 已复制到剪贴板！去微信公众号粘贴', 'success');
+                }).catch(function() {
+                    showStatus('复制失败，请手动复制', 'error');
+                });
             }
-        }
-        
-        function fallbackCopy(text) {
-            try {
-                var textarea = document.createElement('textarea');
-                textarea.value = text;
-                textarea.style.position = 'fixed';
-                textarea.style.opacity = '0';
-                document.body.appendChild(textarea);
-                textarea.select();
-                var ok = document.execCommand('copy');
-                document.body.removeChild(textarea);
-                if (ok) {
-                    showStatus('✅ 已复制到剪贴板！去微信公众号粘贴吧', 'success');
-                } else {
-                    showStatus('复制失败，请手动复制预览内容', 'error');
-                }
-            } catch (e2) {
-                showStatus('复制失败，请手动复制预览内容', 'error');
-            }
+            
+            // 清理
+            selection.removeAllRanges();
+            document.body.removeChild(container);
         }
         
         // 加载示例
@@ -498,5 +551,3 @@
             document.getElementById('status').className = 'status';
         }
     </script>
-</body>
-</html>
