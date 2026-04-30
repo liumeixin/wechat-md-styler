@@ -240,14 +240,22 @@ class WeChatStyler:
     def _wrap_html(self, content: str) -> str:
         """包装成微信公众号可用的纯内联样式（抄自mdnice）"""
         
-        # 根section样式（CSS渐变画方格子，用background简写避免微信过滤background-image）
+        # SVG方格子背景（用SVG pattern代替CSS background-image，微信可能不过滤SVG属性）
+        svg_grid = (
+            '<svg width="100%" height="100%" style="position:absolute;top:0;left:0;z-index:-1;" xmlns="http://www.w3.org/2000/svg">'
+            '<defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">'
+            '<path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1"/>'
+            '</pattern></defs>'
+            '<rect width="100%" height="100%" fill="url(#grid)"/>'
+            '</svg>'
+        )
+
+        # 根section样式
         root_style = (
             'margin: 0px; '
             'padding: 10px; '
-            'background: #FFF '
-                'linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px) '
-                'linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px) '
-                'center center / 20px 20px; '
+            'background-color: #FFF; '
+            'position: relative; '
             'font-family: "Georgia", "Times New Roman", "Microsoft YaHei", "PingFangSC-regular", serif; '
             'font-size: 16px; '
             'color: rgb(0, 0, 0); '
@@ -272,8 +280,8 @@ class WeChatStyler:
         
         compact_content = '\n'.join(processed_lines)
         
-        # 返回纯section标签（不用class，微信公众号只认内联样式）
-        return f'<section data-tool="wechat-styler" style="{root_style}">{compact_content}</section>'
+        # 返回section标签包裹内容，SVG背景层在最前面
+        return f'<section data-tool="wechat-styler" style="{root_style}">{svg_grid}{compact_content}</section>'
     
     def convert_file(self, input_path: str, output_path: Optional[str] = None) -> str:
         """转换文件"""
