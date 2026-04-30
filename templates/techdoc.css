@@ -1,37 +1,35 @@
-/* 微信公众号排版 - 优雅紫主题 */
-/* 参考：别人的 Hermes 文章 */
+/* 微信公众号排版 - 技术风格 */
+/* 参考：极空间 docker 部署文章 */
 
 /* ===== 基础样式 ===== */
 body {
-  font-family: "Georgia", "Times New Roman", "Songti SC", "SimSun", serif;
-  font-size: 17px;
+  font-family: Optima, "Microsoft YaHei", "PingFang SC", Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  font-size: 15px;
   line-height: 1.8;
-  color: rgb(89, 89, 89);
+  color: rgb(10, 10, 10);
   word-wrap: break-word;
-  /* 方格子背景 */
-  background-color: #fafafa;
-  background-image: 
-    linear-gradient(rgba(145, 109, 213, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(145, 109, 213, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
+  margin: 0;
+  padding: 0 8px;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: rgb(65, 105, 225);
+  color: rgb(0, 0, 0);
   font-weight: bold;
-  margin: 1em 0 0.5em 0;
+  margin: 2em auto 1em;
+  padding: 0.5em 1em;
   line-height: 1.5;
 }
 
-h1 { font-size: 22px; text-align: center; }
-h2 { font-size: 20px; text-align: center; border-bottom: 2px solid rgb(145, 109, 213); padding-bottom: 8px; display: inline-block; }
-h3 { font-size: 18px; text-align: center; border-bottom: 2px solid rgb(145, 109, 213); padding-bottom: 8px; display: inline-block; }
+h1 { font-size: 21px; border-bottom: 2px solid rgb(250, 81, 81); }
+h2 { font-size: 20px; }
+h3 { font-size: 18px; }
 h4 { font-size: 16px; }
 
 p {
-  margin: 0;
-  padding: 8px 0;
-  text-align: left;
+  margin: 0 8px;
+  padding: 0;
+  text-align: justify;
+  letter-spacing: 0.1em;
 }
 
 /* ===== 链接 ===== */
@@ -53,14 +51,14 @@ em, i {
 
 /* ===== 代码块 ===== */
 pre, code {
-  font-family: "Operator Mono", Consolas, Monaco, Menlo, monospace;
-  font-size: 14px;
-  background-color: rgba(27, 31, 35, 0.05);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13.5px;
+  background-color: rgba(248, 248, 248);
   border-radius: 4px;
 }
 
 code {
-  color: rgb(145, 109, 213);
+  color: rgb(233, 105, 0);
   padding: 2px 4px;
   margin: 0 2px;
 }
@@ -68,8 +66,9 @@ code {
 pre {
   padding: 12px 16px;
   overflow-x: auto;
-  margin: 12px 0;
+  margin: 10px 8px;
   line-height: 1.6;
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 pre code {
@@ -80,7 +79,7 @@ pre code {
 
 /* ===== 引用块 ===== */
 blockquote {
-  margin: 12px 0;
+  margin: 12px 8px;
   padding: 12px 16px;
   border-left: 4px solid rgb(145, 109, 213);
   background-color: rgb(246, 238, 255);
@@ -90,11 +89,12 @@ blockquote {
 blockquote p {
   margin: 0;
   padding: 0;
+  text-align: left;
 }
 
 /* ===== 列表 ===== */
 ul, ol {
-  margin: 12px 0;
+  margin: 12px 8px;
   padding-left: 24px;
 }
 
@@ -115,16 +115,16 @@ img {
 /* ===== 分割线 ===== */
 hr {
   border: none;
-  border-top: 1px solid rgba(145, 109, 213, 0.3);
-  margin: 24px 0;
+  border-top: 1px dashed rgb(165, 165, 165);
+  margin: 24px 8px;
 }
 
 /* ===== 表格 ===== */
 table {
   width: 100%;
   border-collapse: collapse;
-  margin: 16px 0;
-  font-size: 15px;
+  margin: 16px 8px;
+  font-size: 14px;
 }
 
 th, td {
@@ -139,13 +139,16 @@ th {
 }
 
 /* ===== 微信公众号专用 ===== */
-/* 解决微信底部引导关注的问题 */
 .rich_media_extra {
   display: none;
 }
 
-/* 视频容器适配 */
 video {
   max-width: 100%;
   height: auto;
+}
+
+/* 空段落显示 */
+p:empty {
+  min-height: 1em;
 }

@@ -72,18 +72,28 @@ class WeChatStyler:
         """Markdown 转 HTML 的核心逻辑"""
         html = md
         
+        # 0. 去除 frontmatter (--- ... ---)
+        html = re.sub(r'^---\n[\s\S]*?\n---\n', '', html)
+        
+        # 0.1 图片处理必须最先（优先于标题、代码块等）
+        html = re.sub(
+            r'!\[([^\]]*)\]\(([^)]+)\)',
+            r'<img referrerpolicy="no-referrer" src="\2" alt="\1" title="" style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; display: block; margin: 8px auto; max-width: 100%;">',
+            html
+        )
+        
         # 1. 代码块 ```...```
         html = re.sub(
             r'```(\w*)\n(.*?)```',
-            r'<pre><code class="language-\1">\2</code></pre>',
+            r'<pre style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; overflow-wrap: break-word; padding: 12px 16px; border-radius: 4px; margin: 12px 0px; background: rgb(248, 248, 248); overflow-x: auto;"><code class="language-\1" style="font-size: inherit; line-height: inherit; overflow-wrap: break-word; padding: 0px; margin: 0px; color: rgb(51, 51, 51);">\2</code></pre>',
             html,
             flags=re.DOTALL
         )
         
-        # 2. 行内代码 `...`
+        # 2. 行内代码 `...` - 橙色 + 灰底
         html = re.sub(
             r'`([^`]+)`',
-            r'<code>\1</code>',
+            r'<code style="font-size: inherit; line-height: inherit; overflow-wrap: break-word; padding: 2px 4px; border-radius: 4px; margin: 0px 2px; color: rgb(145, 109, 213); background: rgb(248, 248, 248);">\1</code>',
             html
         )
         
@@ -94,59 +104,72 @@ class WeChatStyler:
         for line in lines:
             # H1: # 标题
             if line.startswith('# '):
-                new_lines.append(f'<h1>{line[2:]}</h1>')
-            # H2: ## 标题
+                new_lines.append(f'<h1 style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0.5em 0px; font-weight: bold;">{line[2:]}</h1>')
+            # H2: ## 标题 - 居中 + 紫色下划线
             elif line.startswith('## '):
-                new_lines.append(f'<h2>{line[3:]}</h2>')
-            # H3: ### 标题
+                new_lines.append(f'<h2 style="text-align: center; font-size: 20px; color: rgb(80, 80, 80); margin: 1em auto; font-weight: bold;"><span style="display: inline-block; border-bottom: 2px solid rgb(176, 159, 218); padding-bottom: 8px;">{line[3:]}</span></h2>')
+            # H3: ### 标题 - 居中 + 紫色下划线
             elif line.startswith('### '):
-                new_lines.append(f'<h3>{line[4:]}</h3>')
-            # H4: #### 标题
+                title_text = line[4:]
+                new_lines.append(f'<h3 style="text-align: center; font-size: 18px; color: rgb(80, 80, 80); margin: 1em auto; font-weight: bold;"><span style="display: inline-block; border-bottom: 2px solid rgb(176, 159, 218); padding-bottom: 8px;">{title_text}</span></h3>')
+            # H4: #### 标题 - 蓝色 + 竖线格式
             elif line.startswith('#### '):
-                new_lines.append(f'<h4>{line[5:]}</h4>')
+                # 提取标题文字
+                title_text = line[5:]
+                # 如果用户已经写了 | ，就不再加；没有就自动加
+                if '|' in title_text:
+                    # 用户已写 | ，保持原样只加蓝色
+                    new_lines.append(f'<h4 id="hspanstylecolor4169e1span" style="color: inherit; line-height: inherit; padding: 0px; margin: 0.5em 0px; font-weight: bold; font-size: 1.2em;"><span style="font-size: inherit; color: inherit; line-height: inherit; margin: 0px; padding: 0px;"><span style="font-size: inherit; line-height: inherit; margin: 0px; padding: 0px; color: #4169E1;">{title_text}</span></span></h4>')
+                else:
+                    # 自动加竖线
+                    new_lines.append(f'<h4 id="hspanstylecolor4169e1span" style="color: inherit; line-height: inherit; padding: 0px; margin: 0.5em 0px; font-weight: bold; font-size: 1.2em;"><span style="font-size: inherit; color: inherit; line-height: inherit; margin: 0px; padding: 0px;"><span style="font-size: inherit; line-height: inherit; margin: 0px; padding: 0px; color: #4169E1;">| {title_text}</span></span></h4>')
             # 分割线
             elif re.match(r'^---+$', line) or re.match(r'^\*\*\*+$', line):
                 new_lines.append('<hr>')
+            # 空行：保留为空行
+            elif not line.strip():
+                new_lines.append('')
             # 普通段落
             else:
                 new_lines.append(line)
         
         html = '\n'.join(new_lines)
         
+        # 4.1 引用块 > text（必须先于段落处理）
+        def process_blockquote(m):
+            lines = m.group(1).strip().split('\n')
+            content = '<br>'.join(line.strip() for line in lines if line.strip())
+            return f'<blockquote style="line-height: inherit; display: block; padding: 15px 15px 15px 1rem; font-size: 0.9em; margin: 1em 0px; color: rgb(129, 145, 152); border-left: 6px solid rgb(220, 230, 240); background: rgb(242, 247, 251); overflow: auto; overflow-wrap: normal; word-break: normal;"><p style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0px;">{content}</p></blockquote>'
+        
+        html = re.sub(r'^> (.+)$', process_blockquote, html, flags=re.MULTILINE)
+        
         # 4. 强调 **粗体** 或 __粗体__
         html = re.sub(
             r'\*\*([^*]+)\*\*',
-            r'<strong>\1</strong>',
+            r'<strong style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0px;">\1</strong>',
             html
         )
         html = re.sub(
             r'__([^_]+)__',
-            r'<strong>\1</strong>',
+            r'<strong style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0px;">\1</strong>',
             html
         )
         
         # 5. 斜体 *斜体* 或 _斜体_
         html = re.sub(
             r'\*([^*]+)\*',
-            r'<em>\1</em>',
+            r'<em style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0px;">\1</em>',
             html
         )
         
-        # 6. 图片 ![alt](url) （必须在链接之前处理）
-        html = re.sub(
-            r'!\[([^\]]*)\]\(([^)]+)\)',
-            r'<img src="\2" alt="\1">',
-            html
-        )
-
-        # 7. 链接 [文字](url)
+        # 6. 链接 [文字](url)
         html = re.sub(
             r'\[([^\]]+)\]\(([^)]+)\)',
-            r'<a href="\2">\1</a>',
+            r'<a href="\2" style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0px; text-decoration: none; border-bottom: 1px solid rgb(145, 109, 213);">\1</a>',
             html
         )
         
-        # 8. 无序列表
+        # 7. 无序列表
         html = re.sub(
             r'^- (.+)$',
             r'<li>\1</li>',
@@ -162,104 +185,102 @@ class WeChatStyler:
             flags=re.MULTILINE
         )
         
-        # 10. 引用块 > 文字
-        html = re.sub(
-            r'^> (.+)$',
-            r'<blockquote>\1</blockquote>',
-            html,
-            flags=re.MULTILINE
-        )
-        
-# 10. 段落处理：将连续的文本块包裹为 p
-        # 注意：单行换行（无空行分隔）属于同一段落，双重换行（空行）才是段落分隔
+        # 10. 段落处理：将连续的文本块包裹为 p（带内联样式）
+        # 注意：引用块已在 markdown_to_html 阶段处理，这里不再重复处理
         paragraphs = []
         in_list = False
         in_pre = False
-        current_paragraph_lines = []  # 累积当前段落的行
-
-        def flush_paragraph():
-            """将累积的行合并为一个段落"""
-            nonlocal current_paragraph_lines
-            if current_paragraph_lines:
-                # 合并多行，保留软换行（单\n转<br>）
-                para_content = '<br>\n'.join(current_paragraph_lines)
-                paragraphs.append(f'<p>{para_content}</p>')
-                current_paragraph_lines = []
-
+        
         for line in html.split('\n'):
-            line_stripped = line.strip()
+            line = line.strip()
             
-            # 跳过空行（段落分隔符）
-            if not line_stripped:
+            # 空行：转为空的 <p> 标签，让光标可以停在空行处
+            if not line:
                 if in_list:
                     paragraphs.append('</ul>')
                     in_list = False
-                else:
-                    flush_paragraph()
+                paragraphs.append('<p>&nbsp;</p>')
                 continue
             
-            # 代码块和预格式化内容直接添加
-            if line.startswith('<pre') or line.startswith('<code'):
+            # 代码块（<pre>开头）才特殊处理，行内<code>不处理
+            if line.startswith('<pre>'):
                 in_pre = True
-                flush_paragraph()
                 paragraphs.append(line)
             elif in_pre:
                 paragraphs.append(line)
-                if '</pre>' in line or '</code>' in line:
+                if '</pre>' in line:
                     in_pre = False
             # 列表项
-            elif line_stripped.startswith('<li>'):
+            elif line.startswith('<li>'):
                 if not in_list:
-                    flush_paragraph()
-                    paragraphs.append('<ul>')
+                    paragraphs.append('<ul style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 12px 0px; padding-left: 24px;">')
                     in_list = True
-                paragraphs.append(line_stripped)
+                paragraphs.append(line)
             # 标题
-            elif line_stripped.startswith('<h'):
-                flush_paragraph()
-                paragraphs.append(line_stripped)
-            # 引用块
-            elif line_stripped.startswith('<blockquote'):
-                flush_paragraph()
-                paragraphs.append(line_stripped)
+            elif line.startswith('<h'):
+                paragraphs.append(line)
             # 分割线
-            elif line_stripped == '<hr>':
-                flush_paragraph()
-                paragraphs.append(line_stripped)
-            # 其他作为段落（累积多行）
+            elif line == '<hr>':
+                paragraphs.append('<hr style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; height: 1px; margin: 1.5rem 0px; border-width: 1px medium medium; border-style: dashed none none; border-color: rgb(165, 165, 165) currentcolor currentcolor; border-image: initial;">')
+            # 图片单独成行（不再使用figure标签，改为直接检查img标签）
+            elif line.startswith('<img '):
+                paragraphs.append(line)
+            # 其他作为段落
             else:
-                # 如果是图片标签，先 flush 段落再添加
-                if line_stripped.startswith('<img'):
-                    flush_paragraph()
-                    paragraphs.append(line_stripped)
-                else:
-                    if in_list:
-                        paragraphs.append('</ul>')
-                        in_list = False
-                    current_paragraph_lines.append(line_stripped)
-
+                if in_list:
+                    paragraphs.append('</ul>')
+                    in_list = False
+                paragraphs.append(f'<p style="font-size: inherit; color: inherit; line-height: inherit; padding: 0px; margin: 0px;">{line}</p>')
+        
         if in_list:
             paragraphs.append('</ul>')
-        flush_paragraph()
-
-        return '\n'.join(paragraphs)
+        
+        return '\n'.join(paragraphs) + '\n\n'
     
     def _wrap_html(self, content: str) -> str:
-        """包装成完整的 HTML 文档"""
-        return f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微信公众号文章</title>
-    <style>
-{self.css}
-    </style>
-</head>
-<body>
-{content}
-</body>
-</html>"""
+        """包装成微信公众号可用的纯内联样式（抄自mdnice）"""
+        
+        # SVG方格子pattern（data URI编码）
+        svg_pattern = (
+            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E"
+            "%3Crect width='20' height='20' fill='none'/%3E"
+            "%3Cline x1='0' y1='0' x2='20' y2='0' stroke='rgba(50,0,0,0.05)' stroke-width='1'/%3E"
+            "%3Cline x1='0' y1='0' x2='0' y2='20' stroke='rgba(50,0,0,0.05)' stroke-width='1'/%3E"
+            "%3C/svg%3E"
+        )
+        
+        # 根section样式
+        root_style = (
+            'margin: 0px; '
+            'padding: 0px 10px; '
+            f'background-image: url({svg_pattern}); '
+            'background-repeat: repeat; '
+            'background-size: 20px 20px; '
+            'width: auto; '
+            'font-family: "Georgia", "Times New Roman", "Microsoft YaHei", "PingFangSC-regular", serif; '
+            'font-size: 16px; '
+            'color: rgb(0, 0, 0); '
+            'line-height: 1.5em; '
+            'word-spacing: 0em; '
+            'letter-spacing: 0em; '
+            'word-break: break-word; '
+            'overflow-wrap: break-word; '
+            'text-align: left; '
+        )
+        
+        # 处理段落之间的换行
+        lines = content.split('\n')
+        processed_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            processed_lines.append(line)
+        
+        compact_content = '\n'.join(processed_lines)
+        
+        # 返回纯section标签（不用class，微信公众号只认内联样式）
+        return f'<section data-tool="wechat-styler" style="{root_style}">{compact_content}</section>'
     
     def convert_file(self, input_path: str, output_path: Optional[str] = None) -> str:
         """转换文件"""

@@ -1,37 +1,37 @@
-/* 微信公众号排版 - 优雅紫主题 */
-/* 参考：别人的 Hermes 文章 */
+/* 微信公众号排版 - mdnice 编辑器风格 */
+/* 参考：别人的 Hermes 有记忆会画图还省钱，你的只会聊天 */
 
 /* ===== 基础样式 ===== */
 body {
-  font-family: "Georgia", "Times New Roman", "Songti SC", "SimSun", serif;
-  font-size: 17px;
+  font-family: Optima, "Microsoft YaHei", PingFangSC-regular, serif;
+  font-size: 15px;
   line-height: 1.8;
   color: rgb(89, 89, 89);
   word-wrap: break-word;
-  /* 方格子背景 */
-  background-color: #fafafa;
-  background-image: 
-    linear-gradient(rgba(145, 109, 213, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(145, 109, 213, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
+  margin: 0;
+  padding: 0 10px;
+  /* 淡背景渐变 */
+  background: linear-gradient(90deg, rgba(50, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0) 6.76%) left top / 20px 20px repeat scroll padding-box border-box,
+              linear-gradient(360deg, rgba(50, 0, 0, 0.03) 0%, rgba(249, 247, 252, 0) 9.46%) 0% 0% / 20px 20px repeat rgba(0, 0, 0, 0);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: rgb(65, 105, 225);
+  color: rgb(0, 0, 0);
   font-weight: bold;
   margin: 1em 0 0.5em 0;
   line-height: 1.5;
 }
 
 h1 { font-size: 22px; text-align: center; }
-h2 { font-size: 20px; text-align: center; border-bottom: 2px solid rgb(145, 109, 213); padding-bottom: 8px; display: inline-block; }
-h3 { font-size: 18px; text-align: center; border-bottom: 2px solid rgb(145, 109, 213); padding-bottom: 8px; display: inline-block; }
+h2 { font-size: 20px; }
+h3 { font-size: 18px; }
 h4 { font-size: 16px; }
 
 p {
   margin: 0;
   padding: 8px 0;
   text-align: left;
+  text-indent: 0;
 }
 
 /* ===== 链接 ===== */
@@ -53,14 +53,14 @@ em, i {
 
 /* ===== 代码块 ===== */
 pre, code {
-  font-family: "Operator Mono", Consolas, Monaco, Menlo, monospace;
+  font-family: Consolas, Monaco, Menlo, monospace;
   font-size: 14px;
-  background-color: rgba(27, 31, 35, 0.05);
+  background-color: rgba(248, 248, 248);
   border-radius: 4px;
 }
 
 code {
-  color: rgb(145, 109, 213);
+  color: rgb(233, 105, 0);
   padding: 2px 4px;
   margin: 0 2px;
 }
@@ -115,7 +115,7 @@ img {
 /* ===== 分割线 ===== */
 hr {
   border: none;
-  border-top: 1px solid rgba(145, 109, 213, 0.3);
+  border-top: 1px dashed rgb(165, 165, 165);
   margin: 24px 0;
 }
 
@@ -124,7 +124,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin: 16px 0;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 th, td {
@@ -139,13 +139,16 @@ th {
 }
 
 /* ===== 微信公众号专用 ===== */
-/* 解决微信底部引导关注的问题 */
 .rich_media_extra {
   display: none;
 }
 
-/* 视频容器适配 */
 video {
   max-width: 100%;
   height: auto;
+}
+
+/* 空段落显示 */
+p:empty {
+  min-height: 1em;
 }
