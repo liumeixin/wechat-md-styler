@@ -240,17 +240,14 @@ class WeChatStyler:
     def _wrap_html(self, content: str) -> str:
         """包装成微信公众号可用的纯内联样式（抄自mdnice）"""
         
-        # 根section样式（CSS渐变画方格子，微信可保留）
+        # 根section样式（CSS渐变画方格子，用background简写避免微信过滤background-image）
         root_style = (
             'margin: 0px; '
             'padding: 10px; '
-            'background-color: #FFF; '
-            'background-image: '
-                'linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), '
-                'linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px); '
-            'background-size: 20px 20px; '
-            'background-position: center center; '
-            'width: auto; '
+            'background: #FFF '
+                'linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px) '
+                'linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px) '
+                'center center / 20px 20px; '
             'font-family: "Georgia", "Times New Roman", "Microsoft YaHei", "PingFangSC-regular", serif; '
             'font-size: 16px; '
             'color: rgb(0, 0, 0); '
