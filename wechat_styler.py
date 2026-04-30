@@ -240,17 +240,15 @@ class WeChatStyler:
     def _wrap_html(self, content: str) -> str:
         """包装成微信公众号可用的纯内联样式（抄自mdnice）"""
         
-        # PNG方格子pattern（使用135editor代理域名，微信白名单）
-        grid_png = "http://image2.135editor.com/cache/remote/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9mZ25reGZHbm5rVGRKVFFpYWpiaWNSWUVuOGxGYWs1QXpuZ01kY2R4WkZjdWZOcTRKaWJRZThHOHhnTTdYWVNnZmdJMERqR2w2dDZhZHh5SXZNUU5pY0Z4aWJpY0EvNjQwP3d4X2ZtdD1wbmc="
-        
-        # 根section样式
+        # 根section样式（CSS渐变画方格子，微信可保留）
         root_style = (
             'margin: 0px; '
             'padding: 10px; '
             'background-color: #FFF; '
-            f'background-image: url("{grid_png}"); '
-            'background-repeat: repeat; '
-            'background-size: auto; '
+            'background-image: '
+                'linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), '
+                'linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px); '
+            'background-size: 20px 20px; '
             'background-position: center center; '
             'width: auto; '
             'font-family: "Georgia", "Times New Roman", "Microsoft YaHei", "PingFangSC-regular", serif; '
