@@ -11,11 +11,13 @@
             font-size: 17px;
             line-height: 1.8;
             color: rgb(0, 0, 0);
-            background-color: #fafafa;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect width='20' height='20' fill='none'/%3E%3Cline x1='0' y1='0' x2='20' y2='0' stroke='rgba(50,0,0,0.05)' stroke-width='1'/%3E%3Cline x1='0' y1='0' x2='0' y2='20' stroke='rgba(50,0,0,0.05)' stroke-width='1'/%3E%3C/svg%3E");
+            background-color: #FFF;
+            background-image: url("http://image2.135editor.com/cache/remote/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9mZ25reGZHbm5rVGRKVFFpYWpiaWNSWUVuOGxGYWs1QXpuZ01kY2R4WkZjdWZOcTRKaWJRZThHOHhnTTdYWVNnZmdJMERqR2w2dDZhZHh5SXZNUU5pY0Z4aWJpY0EvNjQwP3d4X2ZtdD1wbmc=");
             background-repeat: repeat;
-            background-size: 20px 20px;
-            padding: 0px 10px;
+            background-size: auto;
+            background-position: center center;
+            padding: 10px;
+            box-sizing: border-box;
         }
         section[data-tool="wechat-styler"] h1, section[data-tool="wechat-styler"] h2, section[data-tool="wechat-styler"] h3, section[data-tool="wechat-styler"] h4, section[data-tool="wechat-styler"] h5, section[data-tool="wechat-styler"] h6 {
             color: rgb(65, 105, 225);
@@ -327,7 +329,7 @@
             <h1>📝 微信公众号 Markdown 排版工具</h1>
             <p>输入 Markdown → 选择模板 → 一键复制到微信</p>
         </div>
-        <div class="header-right" id="version-info">v2026.04.30.1655</div>
+        <div class="header-right" id="version-info">v2026.04.30.1810</div>
     </div>
     
     <div class="container">
@@ -368,7 +370,10 @@
             </div>
             <div class="toolbar">
                 <button class="btn btn-success" id="copy-btn" disabled>
-                    <span>📋 一键复制</span>
+                    <span>📋 一键复制到公众号</span>
+                </button>
+                <button class="btn btn-secondary" id="export-html-btn" disabled>
+                    <span>📥 导出HTML</span>
                 </button>
             </div>
             <div class="tips">
@@ -402,6 +407,7 @@
             document.getElementById('load-example-btn').addEventListener('click', loadExample);
             document.getElementById('clear-btn').addEventListener('click', clearInput);
             document.getElementById('copy-btn').addEventListener('click', copyToClipboard);
+            document.getElementById('export-html-btn').addEventListener('click', exportHtml);
         }
         
         // 初始化模板按钮
@@ -476,6 +482,7 @@
                                     currentHtml = data.html;
                                     document.getElementById('preview-content').innerHTML = data.html;
                                     document.getElementById('copy-btn').disabled = false;
+                                    document.getElementById('export-html-btn').disabled = false;
                                     showStatus('✅ 转换成功！', 'success');
                                     
                                     // 显示调试信息
@@ -559,6 +566,36 @@
             }
         }
         
+        // 导出完整HTML文件
+        function exportHtml() {
+            if (!currentHtml) return;
+            
+            // 包装成完整HTML文档
+            var fullHtml = '<!DOCTYPE html>\n' +
+                '<html lang="zh-CN">\n' +
+                '<head>\n' +
+                '<meta charset="UTF-8">\n' +
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+                '<title>微信公众号排版</title>\n' +
+                '</head>\n' +
+                '<body>\n' +
+                currentHtml +
+                '</body>\n' +
+                '</html>';
+            
+            var blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'wechat-article.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('✅ HTML文件已下载', 'success');
+        }
+        
         // 加载示例
         function loadExample() {
             var example = '# 微信公众号排版测试\n\n这是一段**正文内容**，用来测试排版效果。\n\n## 二级标题\n\n### 三级标题\n\n正文段落，继续测试。微信公众号对 CSS 支持有限，需要注意：\n\n- 列表项 1\n- 列表项 2\n- 列表项 3\n\n> 这是引用块，可以用来强调重要内容\n\n### 代码测试\n\n行内代码：`console.log("hello")`\n\n代码块：\n\n```python\ndef hello():\n    print("Hello, World!")\n```\n\n### 链接和强调\n\n这是[链接文字](https://example.com)。\n\n**粗体文字**和*斜体文字*。\n\n\n---\n\n分割线测试\n\n| 表格 | 表头 | 测试 |\n|------|------|------|\n| 单元格1 | 单元格2 | 单元格3 |\n| 单元格4 | 单元格5 | 单元格6 |\n\n---\n\n> 转换后点击"一键复制"，然后去微信公众号后台粘贴即可！';
@@ -571,6 +608,7 @@
             document.getElementById('markdown-input').value = '';
             document.getElementById('preview-content').innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">输入 Markdown 并点击"转换"按钮预览效果</p>';
             document.getElementById('copy-btn').disabled = true;
+            document.getElementById('export-html-btn').disabled = true;
             currentHtml = '';
             hideStatus();
         }

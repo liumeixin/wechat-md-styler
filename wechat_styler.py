@@ -240,22 +240,18 @@ class WeChatStyler:
     def _wrap_html(self, content: str) -> str:
         """包装成微信公众号可用的纯内联样式（抄自mdnice）"""
         
-        # SVG方格子pattern（data URI编码）
-        svg_pattern = (
-            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E"
-            "%3Crect width='20' height='20' fill='none'/%3E"
-            "%3Cline x1='0' y1='0' x2='20' y2='0' stroke='rgba(50,0,0,0.05)' stroke-width='1'/%3E"
-            "%3Cline x1='0' y1='0' x2='0' y2='20' stroke='rgba(50,0,0,0.05)' stroke-width='1'/%3E"
-            "%3C/svg%3E"
-        )
+        # PNG方格子pattern（使用135editor代理域名，微信白名单）
+        grid_png = "http://image2.135editor.com/cache/remote/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X3BuZy9mZ25reGZHbm5rVGRKVFFpYWpiaWNSWUVuOGxGYWs1QXpuZ01kY2R4WkZjdWZOcTRKaWJRZThHOHhnTTdYWVNnZmdJMERqR2w2dDZhZHh5SXZNUU5pY0Z4aWJpY0EvNjQwP3d4X2ZtdD1wbmc="
         
         # 根section样式
         root_style = (
             'margin: 0px; '
-            'padding: 0px 10px; '
-            f'background-image: url({svg_pattern}); '
+            'padding: 10px; '
+            'background-color: #FFF; '
+            f'background-image: url("{grid_png}"); '
             'background-repeat: repeat; '
-            'background-size: 20px 20px; '
+            'background-size: auto; '
+            'background-position: center center; '
             'width: auto; '
             'font-family: "Georgia", "Times New Roman", "Microsoft YaHei", "PingFangSC-regular", serif; '
             'font-size: 16px; '
@@ -266,6 +262,8 @@ class WeChatStyler:
             'word-break: break-word; '
             'overflow-wrap: break-word; '
             'text-align: left; '
+            'box-sizing: border-box; '
+            'overflow-x: hidden; '
         )
         
         # 处理段落之间的换行
